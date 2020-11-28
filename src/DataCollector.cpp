@@ -1,4 +1,4 @@
-#include "HumidMatic.h"
+#include "Monitor.h"
 #include "DataCollector.h"
 
 DataCollector::DataCollector():

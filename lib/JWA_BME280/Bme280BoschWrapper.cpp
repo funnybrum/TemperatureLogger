@@ -93,7 +93,7 @@ void Bme280BoschWrapper::I2CInit()
   bme280.read = Bme280BoschWrapper::I2CRead;
   bme280.delay_ms = Bme280BoschWrapper::delaymsec;
 
-  Wire.begin(5,4);
+  Wire.begin(4,5);
 }
 
 void Bme280BoschWrapper::SPIInit() 

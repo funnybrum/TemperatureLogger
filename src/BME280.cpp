@@ -1,10 +1,10 @@
-#include "HumidMatic.h"
+#include "Monitor.h"
 #include "Bme280BoschWrapper.h"
 
 void BoschBME280::begin() {
-    sensorFound = bme280.beginI2C(0x76);
+    sensorFound = bme280.beginI2C(0x77);
     if (!sensorFound) {
-        logger.log("BME280 not found on 0x76");    
+        logger.log("BME280 not found on 0x77");    
     }
     this->lastRead = millis() - BME280_READ_INTERVAL + 200;
     if (settings.getSettings()->bme280.humidityFactor == 0) {

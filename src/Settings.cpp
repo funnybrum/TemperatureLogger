@@ -1,5 +1,5 @@
 #include "Settings.h"
-#include "HumidMatic.h"
+#include "Monitor.h"
 
 Settings::Settings()
     :SettingsBase(&logger) {
