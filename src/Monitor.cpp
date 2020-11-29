@@ -7,7 +7,7 @@ WiFiManager wifi = WiFiManager(&logger, &settings.getSettings()->network);
 WebServer webServer = WebServer(&logger, &settings.getSettings()->network);
 
 DataCollector dataCollector = DataCollector();
-BoschBME280 tempSensor = BoschBME280();
+BME280 tempSensor = BME280();
 
 void setup() { 
     Serial.begin(9600);

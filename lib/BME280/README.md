@@ -4,12 +4,6 @@ This package contains the Bosch Sensortec's BME280 pressure sensor driver (senso
 
 The sensor driver package includes bme280.c, bme280.h and bme280_defs.h files.
 
-## Version
-File          | Version | Date
---------------|---------|------------
-bme280.c      |  3.3.7  | 26 Aug 2019
-bme280.h      |  3.3.7  | 26 Aug 2019
-bme280_defs.h |  3.3.7  | 26 Aug 2019
 
 ## Integration details
 * Integrate bme280.h, bme280_defs.h and bme280.c file in to the project.
@@ -40,7 +34,9 @@ struct bme280_dev dev;
 int8_t rslt = BME280_OK;
 
 /* Sensor_0 interface over SPI with native chip select line */
-dev.dev_id = 0;
+uint8_t dev_addr = 0;
+
+dev.intf_ptr = &dev_addr;
 dev.intf = BME280_SPI_INTF;
 dev.read = user_spi_read;
 dev.write = user_spi_write;
@@ -52,8 +48,9 @@ rslt = bme280_init(&dev);
 ``` c
 struct bme280_dev dev;
 int8_t rslt = BME280_OK;
+uint8_t dev_addr = BME280_I2C_ADDR_PRIM;
 
-dev.dev_id = BME280_I2C_ADDR_PRIM;
+dev.intf_ptr = &dev_addr;
 dev.intf = BME280_I2C_INTF;
 dev.read = user_i2c_read;
 dev.write = user_i2c_write;
@@ -103,6 +100,7 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
 {
     int8_t rslt;
     uint8_t settings_sel;
+	uint32_t req_delay;
     struct bme280_data comp_data;
 
     /* Recommended mode of operation: Indoor navigation */
@@ -114,13 +112,17 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev)
     settings_sel = BME280_OSR_PRESS_SEL | BME280_OSR_TEMP_SEL | BME280_OSR_HUM_SEL | BME280_FILTER_SEL;
 
     rslt = bme280_set_sensor_settings(settings_sel, dev);
+	
+	/*Calculate the minimum delay required between consecutive measurement based upon the sensor enabled
+     *  and the oversampling configuration. */
+    req_delay = bme280_cal_meas_delay(&dev->settings);
 
     printf("Temperature, Pressure, Humidity\r\n");
     /* Continuously stream sensor data */
     while (1) {
         rslt = bme280_set_sensor_mode(BME280_FORCED_MODE, dev);
         /* Wait for the measurement to complete and print data @25Hz */
-        dev->delay_ms(40);
+        dev->delay_ms(req_delay, dev->intf_ptr);
         rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, dev);
         print_sensor_data(&comp_data);
     }
@@ -162,7 +164,7 @@ int8_t stream_sensor_data_normal_mode(struct bme280_dev *dev)
 	printf("Temperature, Pressure, Humidity\r\n");
 	while (1) {
 		/* Delay while the sensor completes a measurement */
-		dev->delay_ms(70);
+		dev->delay_ms(70, dev->intf_ptr);
 		rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, dev);
 		print_sensor_data(&comp_data);
 	}
@@ -183,7 +185,7 @@ void print_sensor_data(struct bme280_data *comp_data)
 ### Templates for function pointers
 ``` c
 
-void user_delay_ms(uint32_t period)
+void user_delay_ms(uint32_t period, void *intf_ptr)
 {
     /*
      * Return control or wait,
@@ -191,12 +193,12 @@ void user_delay_ms(uint32_t period)
      */
 }
 
-int8_t user_spi_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
+int8_t user_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
     int8_t rslt = 0; /* Return 0 for Success, non-zero for failure */
 
     /*
-     * The parameter dev_id can be used as a variable to select which Chip Select pin has
+     * The parameter intf_ptr can be used as a variable to select which Chip Select pin has
      * to be set low to activate the relevant device on the SPI bus
      */
 
@@ -217,12 +219,12 @@ int8_t user_spi_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16
     return rslt;
 }
 
-int8_t user_spi_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
+int8_t user_spi_write(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
     int8_t rslt = 0; /* Return 0 for Success, non-zero for failure */
 
     /*
-     * The parameter dev_id can be used as a variable to select which Chip Select pin has
+     * The parameter intf_ptr can be used as a variable to select which Chip Select pin has
      * to be set low to activate the relevant device on the SPI bus
      */
 
@@ -243,12 +245,12 @@ int8_t user_spi_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
     return rslt;
 }
 
-int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
+int8_t user_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
     int8_t rslt = 0; /* Return 0 for Success, non-zero for failure */
 
     /*
-     * The parameter dev_id can be used as a variable to store the I2C address of the device
+     * The parameter intf_ptr can be used as a variable to store the I2C address of the device
      */
 
     /*
@@ -270,12 +272,12 @@ int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16
     return rslt;
 }
 
-int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
+int8_t user_i2c_write(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
     int8_t rslt = 0; /* Return 0 for Success, non-zero for failure */
 
     /*
-     * The parameter dev_id can be used as a variable to store the I2C address of the device
+     * The parameter intf_ptr can be used as a variable to store the I2C address of the device
      */
 
     /*
@@ -296,5 +298,3 @@ int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
 }
 
 ```
-
-## Copyright (C) 2016 - 2017 Bosch Sensortec GmbH

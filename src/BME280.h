@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Bme280BoschWrapper.h"
+#include "BoschBME280.h"
 
 #define BME280_READ_INTERVAL 1000
 
@@ -30,7 +30,7 @@ Humidity offset:<br>
 </fieldset>
 )=====";
 
-class BoschBME280 {
+class BME280 {
     public:
         void begin();
         void loop();
@@ -55,5 +55,5 @@ class BoschBME280 {
         int pressure;
         unsigned long lastRead;
         bool sensorFound;
-        Bme280BoschWrapper bme280 = Bme280BoschWrapper(true);
+        BoschBME280 bme280 = BoschBME280();
 };

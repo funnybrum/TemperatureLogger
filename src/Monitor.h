@@ -16,7 +16,7 @@ extern WiFiManager wifi;
 #include "BME280.h"
 #include "DataCollector.h"
 
-extern BoschBME280 tempSensor;
+extern BME280 tempSensor;
 extern DataCollector dataCollector;
 
 #define HTTP_PORT 80
