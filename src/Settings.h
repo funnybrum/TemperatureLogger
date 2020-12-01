@@ -19,6 +19,14 @@ struct SettingsData {
     } hm;
 };
 
+struct RTCSettingsData {
+    RtcNetworkSettings network;
+
+	int16_t temp[120];
+	int16_t humidity[120];
+	uint8_t index;
+};
+
 class Settings: public SettingsBase<SettingsData> {
     public:
         Settings();

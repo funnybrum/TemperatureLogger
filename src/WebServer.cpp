@@ -19,17 +19,10 @@ void WebServer::handle_root() {
 }
 
 void WebServer::handle_settings() {
-    bool save = false;
-
     // Parse passed parameters
-    wifi.parse_config_params(this, save);
-    dataCollector.parse_config_params(this, save);
-    tempSensor.parse_config_params(this, save);
-
-    // Save settings if necessary
-    if (save) {
-        settings.save();
-    }
+    wifi.parse_config_params(this);
+    dataCollector.parse_config_params(this);
+    tempSensor.parse_config_params(this);
 
     // Generate settings page content
     char network_settings[strlen_P(NETWORK_CONFIG_PAGE) + 32];
@@ -68,5 +61,6 @@ void WebServer::handle_stats() {
               PSTR("Uptime: %lus. Free heap: %u"),
               millis()/1000,
               ESP.getFreeHeap());
+    settings.getSettings()->network.wifi_channel = 0;
     server->send(200, "text/plain", buffer);
 }

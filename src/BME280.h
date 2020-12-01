@@ -43,7 +43,7 @@ class BME280 {
         float getAbsoluteHimidity();
 
         void get_config_page(char* buffer);
-        void parse_config_params(WebServerBase* webServer, bool& save);
+        void parse_config_params(WebServerBase* webServer);
 
     private:
         float rhToAh(float rh, float temp);

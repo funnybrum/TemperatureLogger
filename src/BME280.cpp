@@ -6,12 +6,7 @@ void BME280::begin() {
     if (!sensorFound) {
         logger.log("BME280 not found on 0x77");    
     }
-    this->lastRead = millis() - BME280_READ_INTERVAL + 200;
-    if (settings.getSettings()->bme280.humidityFactor == 0) {
-        // Set non-zero default values.
-        settings.getSettings()->bme280.humidityFactor = 100;
-        settings.getSettings()->bme280.humidityOffset = 0;
-    }
+    this->lastRead = millis() - BME280_READ_INTERVAL - 100;
 }
 
 void BME280::loop() {
@@ -87,11 +82,11 @@ void BME280::get_config_page(char* buffer) {
         settings.getSettings()->bme280.humidityOffset);
 }
 
-void BME280::parse_config_params(WebServerBase* webServer, bool& save) {
-    webServer->process_setting("temp_offset", settings.getSettings()->bme280.temperatureOffset, save);
-    webServer->process_setting("pressure_offset", settings.getSettings()->bme280.pressureOffset, save);
-    webServer->process_setting("humidity_factor", settings.getSettings()->bme280.humidityFactor, save);
-    webServer->process_setting("humidity_offset", settings.getSettings()->bme280.humidityOffset, save);
+void BME280::parse_config_params(WebServerBase* webServer) {
+    webServer->process_setting("temp_offset", settings.getSettings()->bme280.temperatureOffset);
+    webServer->process_setting("pressure_offset", settings.getSettings()->bme280.pressureOffset);
+    webServer->process_setting("humidity_factor", settings.getSettings()->bme280.humidityFactor);
+    webServer->process_setting("humidity_offset", settings.getSettings()->bme280.humidityOffset);
 }
 
 float BME280::rhToAh(float rh, float temp) {
