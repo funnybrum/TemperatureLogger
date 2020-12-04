@@ -18,6 +18,8 @@
 extern Logger logger;
 extern Settings settings;
 extern WiFiManager wifi;
+extern InfluxDBSender dataSender;
+extern BME280 bme280;
 
 // If DEBUG is defined the serial output will provide debug messages.
 #define DEBUG
@@ -29,4 +31,4 @@ extern BME280 bme280;
 
 #define HTTP_PORT 80
 #define HOSTNAME "temp-monitor"
-#define SAMPLING_INTERVAL_NS 5000000L   // Interval on which to take measurments in nanoseconds
+#define SAMPLING_INTERVAL_NS 30000000L   // Interval on which to take measurments in nanoseconds

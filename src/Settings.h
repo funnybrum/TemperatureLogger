@@ -27,6 +27,7 @@ struct RTCSettingsData {
 	uint8_t index;
 	int16_t temp[30];
 	int16_t humidity[30];
+    int16_t voltage[30];
 
     State state;
     uint32_t cycleCompensation;

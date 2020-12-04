@@ -6,7 +6,6 @@
 
 struct BME280Settings {
     int8_t temperatureOffset;  // In 0.1C
-    int8_t pressureOffset;     // In mbar
     int16_t humidityFactor;    // In 0.01 units, i.e. 100 here sets the factor to 1
     int8_t humidityOffset;     // In 0.1%
 };
@@ -16,13 +15,10 @@ const char BME280_CONFIG_PAGE[] PROGMEM = R"=====(
 <legend>BME280 settings</legend>
 Temperature offset:<br>
 <input type="text" name="temp_offset" value="%d"><br>
-<small><em>in 0.1 degrees, from -125 to 125</em></small><br><br>
-Pressure offset:<br>
-<input type="text" name="pressure_offset" value="%d"><br>
-<small><em>in mbar, from -125 to 125</em></small><br><br>
+<small><em>in 0.1 degrees, from -125 to 125</em></small><br>
 <br>
 Humidity correction:<br>
-<small>Used if sensor can't be reconditioned<br>corrected = 0.01*factor*raw + 0.1*offset</small><br>
+<small>Used for precise sensor calibration<br>corrected = 0.01*factor*raw + 0.1*offset</small><br>
 Humidity factor:<br>
 <input type="text" name="humidity_factor" value="%d"><br>
 Humidity offset:<br>
@@ -32,6 +28,7 @@ Humidity offset:<br>
 
 class BME280 {
     public:
+        BME280(BME280Settings* settings);
         bool begin();
         bool measure();
 
@@ -43,10 +40,11 @@ class BME280 {
         void parse_config_params(WebServerBase* webServer);
 
     private:
-        float rhToAh(float rh, float temp);
+        float rh_to_ah(float rh, float temp);
 
-        float temp;
-        float humidity;
-        bool sensorFound;
-        BoschBME280 bme280 = BoschBME280();
+        float _temp;
+        float _humidity;
+        bool _sensorFound;
+        BoschBME280 _bme280 = BoschBME280();
+        BME280Settings* _settings;
 };

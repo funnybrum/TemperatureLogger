@@ -21,36 +21,35 @@ void WebServer::handle_root() {
 void WebServer::handle_settings() {
     // Parse passed parameters
     wifi.parse_config_params(this);
-    // tempSensor.parse_config_params(this);
+    bme280.parse_config_params(this);
+    dataSender.parse_config_params(this);
 
     // Generate settings page content
     char network_settings[strlen_P(NETWORK_CONFIG_PAGE) + 32];
     wifi.get_config_page(network_settings);
 
+    char influx_db_sender_settings[strlen_P(INFLUXDB_SENDER_CONFIG_PAGE) + 64];
+    dataSender.get_config_page(influx_db_sender_settings);
+
     char temp_sensor_settings[strlen_P(BME280_CONFIG_PAGE) + 16];
-    // tempSensor.get_config_page(temp_sensor_settings);
+    bme280.get_config_page(temp_sensor_settings);
 
 
     sprintf_P(
         buffer,
         CONFIG_PAGE,
         network_settings,
-        "",
+        influx_db_sender_settings,
         temp_sensor_settings);
     server->send(200, "text/html", buffer);
 }
 
 void WebServer::handle_get() {
-    // sprintf_P(buffer,
-    //           GET_JSON,
-    //           tempSensor.getTemperature(),
-    //           tempSensor.getRawTemperature(),
-    //           tempSensor.getHumidity(),
-    //           tempSensor.getRawHumidity(),
-    //           tempSensor.getAbsoluteHimidity(),
-    //           tempSensor.getPressure());
-    // server->send(200, "application/json", buffer);
-    server->send(200, "application/json", "testing");
+    sprintf_P(buffer,
+              GET_JSON,
+              bme280.getTemperature(),
+              bme280.getHumidity());
+    server->send(200, "application/json", buffer);
 }
 
 void WebServer::handle_stats() {

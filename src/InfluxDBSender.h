@@ -14,7 +14,6 @@
 const char INFLUXDB_SENDER_CONFIG_PAGE[] PROGMEM = R"=====(
 <fieldset style='display: inline-block; width: 300px'>
 <legend>InfluxDB settings</legend>
-InfluxDB integration:<br>
 Address:<br>
 <input type="text" name="ifx_address" value="%s"><br>
 <small><em>like 'http://192.168.0.1:8086'</em></small><br><br>
@@ -32,8 +31,8 @@ struct InfluxDBSenderSettings {
 class InfluxDBSender {
     public:
         InfluxDBSender(Logger* _logger,
-                          InfluxDBSenderSettings* settings,
-                          NetworkSettings* networkSettings) {
+                       InfluxDBSenderSettings* settings,
+                       NetworkSettings* networkSettings) {
             _logger = _logger;
             _settings = settings;
             _networkSettings = networkSettings;
@@ -69,6 +68,27 @@ class InfluxDBSender {
             }
         }
 
+        bool push() {
+            String url = "";
+            url += _settings->address;
+            url += "/write?precision=s&db=";
+            url += _settings->database;
+
+            _http->begin(url);
+            int statusCode =_http->POST((uint8_t *)telemetryData, telemetryDataSize-1);  // -1 to remove
+                        
+            bool success = statusCode == 204;                                                                // the last '\n'.
+            if (success) {
+                telemetryDataSize = 0;
+                syncTime(_http->header("date").c_str());
+            } else {
+                _logger->log("Push failed with HTTP %d", statusCode);
+            }
+
+            _http->end();
+            return success;
+        }
+
         void get_config_page(char* buffer) {
             sprintf_P(
                 buffer,
@@ -81,7 +101,7 @@ class InfluxDBSender {
             webServer->process_setting("ifx_address", _settings->address, sizeof(_settings->address));
             webServer->process_setting("ifx_db", _settings->database, sizeof(_settings->database));
         }
-
+        
     private:
         // Sync the local timestamp based on the date/time response from the InfluxDB server. This
         // is needed in order to append the proper timestamps to the metrics beeing generated.
@@ -167,27 +187,6 @@ class InfluxDBSender {
                 syncTime(_http->header("date").c_str());
             }
             _http->end();
-        }
-
-        bool push() {
-            String url = "";
-            url += _settings->address;
-            url += "/write?precision=s&db=";
-            url += _settings->database;
-
-            _http->begin(url);
-            int statusCode =_http->POST((uint8_t *)telemetryData, telemetryDataSize-1);  // -1 to remove
-                        
-            bool success = statusCode == 204;                                                                // the last '\n'.
-            if (success) {
-                telemetryDataSize = 0;
-                syncTime(_http->header("date").c_str());
-            } else {
-                _logger->log("Push failed with HTTP %d", statusCode);
-            }
-
-            _http->end();
-            return success;
         }
 
         char telemetryData[TELEMETRY_BUFFER_SIZE];

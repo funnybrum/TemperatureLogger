@@ -1,11 +1,12 @@
 #include "Monitor.h"
 
-Logger logger = Logger(false);
+Logger logger = Logger(true);
 Settings settings = Settings();
 
 WiFiManager wifi = WiFiManager(&logger, &settings.getSettings()->network, &settings.getRTCSettings()->network);
 WebServer webServer = WebServer(&logger, &settings.getSettings()->network);
-BME280 bme280 = BME280();
+InfluxDBSender dataSender = InfluxDBSender(&logger, &settings.getSettings()->influxDB, &settings.getSettings()->network);
+BME280 bme280 = BME280(&settings.getSettings()->bme280);
 
 void setup() { 
 
@@ -18,8 +19,8 @@ void setup() {
  
     pinMode(D0, WAKEUP_PULLUP);
 
-    settings.begin();
     logger.begin();
+    settings.begin();
 
 #ifdef DEBUG
     Serial.printf("state: %d, index: %d\n", settings.getRTCSettings()->state, settings.getRTCSettings()->index);
@@ -29,12 +30,15 @@ void setup() {
         case FRESH_BOOT:
             wifi.begin();
             webServer.begin();
+            bme280.begin();
+
             wifi.connect();
             while (!wifi.isConnected() && !wifi.isInAPMode()) {
                 yield();
                 delay(1);
                 wifi.loop();
             }
+            settings.getRTCSettings()->state = COLLECTING;
             break;
         case COLLECTING:
             collect();
@@ -48,19 +52,10 @@ void setup() {
 void loop() {
     settings.loop();
     logger.loop();
+    bme280.measure();
     wifi.loop();
     webServer.loop();
 
-    if (millis() > 10000) {
-        settings.getRTCSettings()->state = COLLECTING;
-        settings.loop();
-
-        Serial.println("Going in deep sleep");
-        Serial.flush();
-        delay(100);
-        ESP.deepSleep(2000000L, WAKE_RF_DISABLED);
-    }
-
-    delay(100);
+    delay(1000);
     Serial.print(".");
 }

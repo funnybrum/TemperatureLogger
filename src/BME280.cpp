@@ -1,36 +1,47 @@
 #include "Monitor.h"
 #include "BME280.h"
 
+BME280::BME280(BME280Settings* settings) {
+    _settings = settings;
+}
+
 bool BME280::begin() {
-    sensorFound = bme280.begin(0x76);
-    if (!sensorFound) {
+    _sensorFound = _bme280.begin(0x76);
+    if (!_sensorFound) {
         logger.log("BME280 not found on 0x77");    
     }
-    return sensorFound;
+    if (_settings->humidityFactor == 0) {
+        // Initialize settings
+        _settings->humidityFactor = 100;
+        _settings->humidityOffset = 0;
+        _settings->temperatureOffset = 0;
+    }
+
+    return _sensorFound;
 }
 
 bool BME280::measure() {
-    if (!sensorFound) {
+    if (!_sensorFound) {
         return false;
     }
 
-    bool ok = bme280.measure();
+    bool ok = _bme280.measure();
     
     if (ok) {
-        temp = bme280.getTemperature();
-        humidity = bme280.getHumidity();
+        _temp = _bme280.getTemperature();
+        _humidity = _bme280.getHumidity();
 
         // Apply corrections
-        humidity = settings.getSettings()->bme280.humidityFactor * humidity * 0.01f +
-                    settings.getSettings()->bme280.humidityOffset * 0.1f;
+        _humidity = _settings->humidityFactor * _humidity * 0.01f +
+                    _settings->humidityOffset * 0.1f;
 
-        if (humidity < 0 || humidity > 100) {
-            logger.log("Incorrect humidity correction, got %f.", humidity);
-            humidity = max(humidity, 0.0f);
-            humidity = min(humidity, 100.0f);
+        if (_humidity < 0 || _humidity > 100) {
+            logger.log("Incorrect humidity correction, got %f.", _humidity);
+            _humidity = max(_humidity, 0.0f);
+            _humidity = min(_humidity, 100.0f);
         }
 
-        temp = temp + settings.getSettings()->bme280.temperatureOffset / 10.0;
+        _temp = _temp + _settings->temperatureOffset / 10.0;
         return true;
     } else {
         logger.log("Failed on BME280 .measure()");
@@ -39,35 +50,33 @@ bool BME280::measure() {
 }
 
 float BME280::getTemperature() {
-    return temp;
+    return _temp;
 }
 
 float BME280::getHumidity() {
-    return humidity;
+    return _humidity;
 }
 
 float BME280::getAbsoluteHimidity() {
-    return rhToAh(this->humidity, this->temp);
+    return rh_to_ah(_humidity, _temp);
 }
 
 void BME280::get_config_page(char* buffer) {
     sprintf_P(
         buffer,
         BME280_CONFIG_PAGE,
-        settings.getSettings()->bme280.temperatureOffset,
-        settings.getSettings()->bme280.pressureOffset,
-        settings.getSettings()->bme280.humidityFactor,
-        settings.getSettings()->bme280.humidityOffset);
+        _settings->temperatureOffset,
+        _settings->humidityFactor,
+        _settings->humidityOffset);
 }
 
 void BME280::parse_config_params(WebServerBase* webServer) {
-    webServer->process_setting("temp_offset", settings.getSettings()->bme280.temperatureOffset);
-    webServer->process_setting("pressure_offset", settings.getSettings()->bme280.pressureOffset);
-    webServer->process_setting("humidity_factor", settings.getSettings()->bme280.humidityFactor);
-    webServer->process_setting("humidity_offset", settings.getSettings()->bme280.humidityOffset);
+    webServer->process_setting("temp_offset", _settings->temperatureOffset);
+    webServer->process_setting("humidity_factor", _settings->humidityFactor);
+    webServer->process_setting("humidity_offset", _settings->humidityOffset);
 }
 
-float BME280::rhToAh(float rh, float temp) {
+float BME280::rh_to_ah(float rh, float temp) {
     // https://carnotcycle.wordpress.com/2012/08/04/how-to-convert-relative-humidity-to-absolute-humidity/
     double p_sat = 6.112 * pow(EULER, (17.67 * temp) / (temp + 243.5));
     return (p_sat * rh * 2.167428434) / (273.15 + temp);
