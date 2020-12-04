@@ -2,12 +2,13 @@
 
 #include "SettingsBase.h"
 #include "WiFi.h"
-#include "InfluxDBCollector.h"
+#include "InfluxDBSender.h"
 #include "BME280.h"
+#include "StateMachine.h"
 
 struct SettingsData {
     NetworkSettings network;
-    InfluxDBCollectorSettings influxDB;
+    InfluxDBSenderSettings influxDB;
     BME280Settings bme280;
     struct AQSensor {
         int16_t temperatureOffset;
@@ -20,21 +21,29 @@ struct SettingsData {
 };
 
 struct RTCSettingsData {
-    RtcNetworkSettings network;
+    RTCNetworkSettings network;
 
-	int16_t temp[120];
-	int16_t humidity[120];
+    // Temperature and humidity readings buffer
 	uint8_t index;
+	int16_t temp[30];
+	int16_t humidity[30];
+
+    State state;
+    uint32_t cycleCompensation;
+
+    uint32_t a;   // A padding. For some reason it doesn't work without it - write operations are failing.
 };
 
-class Settings: public SettingsBase<SettingsData> {
+class Settings: public SettingsBase<SettingsData, RTCSettingsData> {
     public:
         Settings();
         SettingsData* getSettings();
+        RTCSettingsData* getRTCSettings();
 
     protected:
         void initializeSettings();
 
     private:
         SettingsData settingsData;
+        RTCSettingsData rtcSettingsData;
 };

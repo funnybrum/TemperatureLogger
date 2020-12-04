@@ -21,46 +21,44 @@ void WebServer::handle_root() {
 void WebServer::handle_settings() {
     // Parse passed parameters
     wifi.parse_config_params(this);
-    dataCollector.parse_config_params(this);
-    tempSensor.parse_config_params(this);
+    // tempSensor.parse_config_params(this);
 
     // Generate settings page content
     char network_settings[strlen_P(NETWORK_CONFIG_PAGE) + 32];
     wifi.get_config_page(network_settings);
 
-    char data_collector_settings[strlen_P(INFLUXDB_CONFIG_PAGE) + 96];
-    dataCollector.get_config_page(data_collector_settings);
-
     char temp_sensor_settings[strlen_P(BME280_CONFIG_PAGE) + 16];
-    tempSensor.get_config_page(temp_sensor_settings);
+    // tempSensor.get_config_page(temp_sensor_settings);
 
 
     sprintf_P(
         buffer,
         CONFIG_PAGE,
         network_settings,
-        data_collector_settings,
+        "",
         temp_sensor_settings);
     server->send(200, "text/html", buffer);
 }
 
 void WebServer::handle_get() {
-    sprintf_P(buffer,
-              GET_JSON,
-              tempSensor.getTemperature(),
-              tempSensor.getRawTemperature(),
-              tempSensor.getHumidity(),
-              tempSensor.getRawHumidity(),
-              tempSensor.getAbsoluteHimidity(),
-              tempSensor.getPressure());
-    server->send(200, "application/json", buffer);
+    // sprintf_P(buffer,
+    //           GET_JSON,
+    //           tempSensor.getTemperature(),
+    //           tempSensor.getRawTemperature(),
+    //           tempSensor.getHumidity(),
+    //           tempSensor.getRawHumidity(),
+    //           tempSensor.getAbsoluteHimidity(),
+    //           tempSensor.getPressure());
+    // server->send(200, "application/json", buffer);
+    server->send(200, "application/json", "testing");
 }
 
 void WebServer::handle_stats() {
+    uint32_t a = 0;
+    ESP.rtcUserMemoryWrite(0, &a, 4);
     sprintf_P(buffer,
-              PSTR("Uptime: %lus. Free heap: %u"),
+              PSTR("Uptime: %uds. Free heap: %u"),
               millis()/1000,
               ESP.getFreeHeap());
-    settings.getSettings()->network.wifi_channel = 0;
     server->send(200, "text/plain", buffer);
 }

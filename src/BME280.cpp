@@ -1,50 +1,40 @@
 #include "Monitor.h"
 #include "BME280.h"
 
-void BME280::begin() {
+bool BME280::begin() {
     sensorFound = bme280.begin(0x76);
     if (!sensorFound) {
         logger.log("BME280 not found on 0x77");    
     }
-    this->lastRead = millis() - BME280_READ_INTERVAL - 100;
+    return sensorFound;
 }
 
-void BME280::loop() {
+bool BME280::measure() {
     if (!sensorFound) {
-        return;
+        return false;
     }
 
-    unsigned long timeSinceLastStateUpdate = millis() - this->lastRead;
-    if (timeSinceLastStateUpdate > BME280_READ_INTERVAL) {
-        lastRead = millis();
-        bool ok = bme280.measure();
-        if (ok) {
-            raw_temp = temp = bme280.getTemperature();
-            raw_humidity = humidity = bme280.getHumidity();
+    bool ok = bme280.measure();
+    
+    if (ok) {
+        temp = bme280.getTemperature();
+        humidity = bme280.getHumidity();
 
-            // Apply corrections
-            // 1. Apply relative humidity factor and offset. This is for BME280 sensors that still
-            // don't provide correct relative humidity after reconditioning.
-            humidity = settings.getSettings()->bme280.humidityFactor * humidity * 0.01f +
-                       settings.getSettings()->bme280.humidityOffset * 0.1f;
+        // Apply corrections
+        humidity = settings.getSettings()->bme280.humidityFactor * humidity * 0.01f +
+                    settings.getSettings()->bme280.humidityOffset * 0.1f;
 
-            if (humidity < 0 || humidity > 100) {
-                logger.log("Incorrect humidity correction, got %f.", humidity);
-                humidity = max(humidity, 0.0f);
-                humidity = min(humidity, 100.0f);
-            }
-
-            // 2. Get absolute humidity. This will be used to correct relative humidity below
-            // after temperature is corrected.
-            float ah = getAbsoluteHimidity();
-
-            // 3. Temperature offset. This is not for BME280 issues, but for sensor positioning
-            // correction. I.e. if the sensor is near the ceiling - the temperature would be a bit
-            // higher.
-            temp = temp + settings.getSettings()->bme280.temperatureOffset / 10.0;
-        } else {
-            logger.log("Failed on BME280 .measure()");
+        if (humidity < 0 || humidity > 100) {
+            logger.log("Incorrect humidity correction, got %f.", humidity);
+            humidity = max(humidity, 0.0f);
+            humidity = min(humidity, 100.0f);
         }
+
+        temp = temp + settings.getSettings()->bme280.temperatureOffset / 10.0;
+        return true;
+    } else {
+        logger.log("Failed on BME280 .measure()");
+        return false;
     }
 }
 
@@ -54,18 +44,6 @@ float BME280::getTemperature() {
 
 float BME280::getHumidity() {
     return humidity;
-}
-
-float BME280::getRawTemperature() {
-    return raw_temp;
-}
-
-float BME280::getRawHumidity() {
-    return raw_humidity;
-}
-
-float BME280::getPressure() {
-    return pressure;
 }
 
 float BME280::getAbsoluteHimidity() {

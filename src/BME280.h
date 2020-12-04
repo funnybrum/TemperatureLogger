@@ -32,14 +32,11 @@ Humidity offset:<br>
 
 class BME280 {
     public:
-        void begin();
-        void loop();
+        bool begin();
+        bool measure();
 
         float getTemperature();
-        float getRawTemperature();
         float getHumidity();
-        float getRawHumidity();
-        float getPressure();
         float getAbsoluteHimidity();
 
         void get_config_page(char* buffer);
@@ -50,10 +47,6 @@ class BME280 {
 
         float temp;
         float humidity;
-        float raw_temp;
-        float raw_humidity;
-        int pressure;
-        unsigned long lastRead;
         bool sensorFound;
         BoschBME280 bme280 = BoschBME280();
 };
