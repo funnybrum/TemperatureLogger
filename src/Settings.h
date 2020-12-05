@@ -10,29 +10,25 @@ struct SettingsData {
     NetworkSettings network;
     InfluxDBSenderSettings influxDB;
     BME280Settings bme280;
-    struct AQSensor {
-        int16_t temperatureOffset;
-        int16_t humidityOffset;
-    } aqSensor;
-    struct HumidMatic {
-        uint8_t targetHumidityLow;
-        uint8_t targetHumidityHigh;
-    } hm;
 };
 
 struct RTCSettingsData {
     RTCNetworkSettings network;
 
-    // Temperature and humidity readings buffer
+    // Samples buffer and index for it
 	uint8_t index;
-	int16_t temp[30];
-	int16_t humidity[30];
-    int16_t voltage[30];
+	int16_t temp[60];
+	int16_t humidity[60];
+    int16_t voltage[60];
 
+    // Target state of the state machine
     State state;
+
+    // Used on pre-push procedures to compensate for the last cycle duration 
     uint32_t cycleCompensation;
 
-    uint32_t a;   // A padding. For some reason it doesn't work without it - write operations are failing.
+    // Keep track of the last pushed temperature value
+    int16_t lastPushedTemp;
 };
 
 class Settings: public SettingsBase<SettingsData, RTCSettingsData> {

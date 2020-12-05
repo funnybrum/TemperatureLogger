@@ -6,15 +6,18 @@ BME280::BME280(BME280Settings* settings) {
 }
 
 bool BME280::begin() {
-    _sensorFound = _bme280.begin(0x76);
-    if (!_sensorFound) {
-        logger.log("BME280 not found on 0x77");    
-    }
-    if (_settings->humidityFactor == 0) {
-        // Initialize settings
-        _settings->humidityFactor = 100;
-        _settings->humidityOffset = 0;
-        _settings->temperatureOffset = 0;
+    if (!_initialized) {
+        _sensorFound = _bme280.begin(0x76);
+        if (!_sensorFound) {
+            logger.log("BME280 not found on 0x77");    
+        }
+        if (_settings->humidityFactor == 0) {
+            // Initialize settings
+            _settings->humidityFactor = 100;
+            _settings->humidityOffset = 0;
+            _settings->temperatureOffset = 0;
+        }
+        _initialized = true;
     }
 
     return _sensorFound;

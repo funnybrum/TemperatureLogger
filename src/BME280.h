@@ -45,6 +45,7 @@ class BME280 {
         float _temp;
         float _humidity;
         bool _sensorFound;
+        bool _initialized = false;
         BoschBME280 _bme280 = BoschBME280();
         BME280Settings* _settings;
 };

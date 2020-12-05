@@ -9,5 +9,17 @@ enum State {
 };
 
 
-void collect();
-void push();
+// Perform the collect step
+void collect_step();
+
+// Perform the push step
+void push_step();
+
+// Check if the collected data should be pushed
+bool should_push();
+
+// Read the BME280 sensor and store its data in the RTC memory structure
+void read_sensor();
+
+// Push the collected data in the RTC memory structure to the InfluxDB  
+void push_data();

@@ -48,7 +48,8 @@ void WebServer::handle_get() {
     sprintf_P(buffer,
               GET_JSON,
               bme280.getTemperature(),
-              bme280.getHumidity());
+              bme280.getHumidity(),
+              GET_V_BAT/100.0f);
     server->send(200, "application/json", buffer);
 }
 

@@ -21,17 +21,20 @@ void setup() {
 
     logger.begin();
     settings.begin();
+ 
+    // TODO check if bettery is being charged and if so - go in FRESH_BOOT state.
 
-#ifdef DEBUG
-    Serial.printf("state: %d, index: %d\n", settings.getRTCSettings()->state, settings.getRTCSettings()->index);
-#endif
+    if (strlen(settings.getSettings()->network.ssid) < 2) {
+        // No configuration. In such case stay in FRESH_BOOT mode.
+        settings.getRTCSettings()->state = FRESH_BOOT;
+        ESP.eraseConfig();
+    }
 
     switch(settings.getRTCSettings()->state) {
         case FRESH_BOOT:
             wifi.begin();
             webServer.begin();
             bme280.begin();
-
             wifi.connect();
             while (!wifi.isConnected() && !wifi.isInAPMode()) {
                 yield();
@@ -41,13 +44,15 @@ void setup() {
             settings.getRTCSettings()->state = COLLECTING;
             break;
         case COLLECTING:
-            collect();
+            collect_step();
             break;
         case PUSH:
-            push();
+            push_step();
             break;
     }
 }
+
+uint32_t lastSensorReading = 0;
 
 void loop() {
     settings.loop();
@@ -56,6 +61,16 @@ void loop() {
     wifi.loop();
     webServer.loop();
 
-    delay(1000);
+    if (lastSensorReading == 0 || millis() - lastSensorReading > SAMPLING_INTERVAL_NS / 1000) {
+        lastSensorReading = millis();
+        read_sensor();
+        if (should_push()) {
+            Serial.println("\nAttempting push of " + String(settings.getRTCSettings()->index-1) + " samples");
+            dataSender.init();
+            push_data();
+        }        
+    }
+
     Serial.print(".");
+    delay(1000);
 }

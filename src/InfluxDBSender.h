@@ -8,9 +8,7 @@
 #include "WiFi.h"
 #include "WebServerBase.h"
 
-#ifndef TELEMETRY_BUFFER_SIZE
-#define TELEMETRY_BUFFER_SIZE 8192
-#endif
+#define TELEMETRY_BUFFER_SIZE 16384
 const char INFLUXDB_SENDER_CONFIG_PAGE[] PROGMEM = R"=====(
 <fieldset style='display: inline-block; width: 300px'>
 <legend>InfluxDB settings</legend>
@@ -39,9 +37,11 @@ class InfluxDBSender {
         }
 
         void init() {
-            _http = new HTTPClient();
-            const char * headerKeys[] = {"date"};
-            _http->collectHeaders(headerKeys, 1);
+            if (_http == NULL) {
+                _http = new HTTPClient();
+                const char * headerKeys[] = {"date"};
+                _http->collectHeaders(headerKeys, 1);
+            }
             ping();
         }
 
