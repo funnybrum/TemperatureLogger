@@ -17,7 +17,7 @@ void setup() {
     }
 #endif
  
-    pinMode(D0, WAKEUP_PULLUP);
+    pinMode(16, WAKEUP_PULLUP);
 
     logger.begin();
     settings.begin();

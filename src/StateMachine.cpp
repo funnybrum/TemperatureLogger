@@ -11,7 +11,7 @@ bool should_push() {
         return true;
     }
 
-    if (abs(data->lastPushedTemp - data->temp[data->index-1] > 10)) {
+    if (abs(data->lastPushedTemp - data->temp[data->index-1]) > 10) {
         // There is >= 1 degree difference from the last pushed temperature
         return true;
     }
@@ -40,7 +40,7 @@ void read_sensor() {
 
     data->temp[index] = round(bme280.getTemperature() * 10);
     data->humidity[index] = round(bme280.getHumidity() * 10);
-    data->voltage[index] = GET_V_BAT;
+    data->voltage[index] = round(436.5 * analogRead(A0) / 1023);
     data->index++;
 
     if (data->lastPushedTemp == 0) {
@@ -63,6 +63,9 @@ void push_data() {
         dataSender.append("bat_voltage", data->voltage[i]/100.0f, nowMinusSeconds, 2);
         Serial.printf("now()-%d: %.1f\n", nowMinusSeconds, data->temp[i]/10.0f);
     }
+
+    dataSender.append("v_bat", GET_V_BAT/100.0f, 0, 2);
+
 
     if (dataSender.push()) {
         data->lastPushedTemp = data->temp[samples-1];
@@ -94,15 +97,18 @@ void collect_step() {
 void push_step() {
     wifi.begin();
     wifi.connect();
-    while (!wifi.isConnected() && !wifi.isInAPMode()) {
+    while (!wifi.isConnected() && !wifi.isInAPMode() && micros() < 10000) {
         yield();
-        delay(1);
+        delay(10);
         wifi.loop();
     }
-    dataSender.init();
-    push_data();
-    wifi.disconnect();
+    
+    if (wifi.isConnected()) {
+        dataSender.init();
+        push_data();
+    }
 
+    wifi.disconnect();
     settings.getRTCSettings()->state = COLLECTING;
     settings.loop();
 
