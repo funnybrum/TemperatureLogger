@@ -22,7 +22,7 @@ extern InfluxDBSender dataSender;
 extern BME280 bme280;
 
 // If DEBUG is defined the serial output will provide debug messages.
-#define DEBUG
+// #define DEBUG
 
 #include "StateMachine.h"
 #include "BME280.h"
@@ -31,5 +31,5 @@ extern BME280 bme280;
 
 #define HTTP_PORT 80
 #define HOSTNAME "temp-monitor"
-#define SAMPLING_INTERVAL_NS 30000000L   // Interval on which to take measurments in nanoseconds
+#define SAMPLING_INTERVAL_NS 30000000UL   // Interval on which to take measurments in nanoseconds
 #define GET_V_BAT round(475.0 * analogRead(A0) / 1023)

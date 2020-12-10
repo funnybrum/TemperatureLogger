@@ -1,6 +1,11 @@
 #include "Monitor.h"
 
+
+#ifdef DEBUG
 Logger logger = Logger(true);
+#else
+Logger logger = Logger(false);
+#endif
 Settings settings = Settings();
 
 WiFiManager wifi = WiFiManager(&logger, &settings.getSettings()->network, &settings.getRTCSettings()->network);
@@ -65,7 +70,6 @@ void loop() {
         lastSensorReading = millis();
         read_sensor();
         if (should_push()) {
-            Serial.println("\nAttempting push of " + String(settings.getRTCSettings()->index-1) + " samples");
             dataSender.init();
             push_data();
         }        

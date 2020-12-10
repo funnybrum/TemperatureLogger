@@ -17,9 +17,8 @@ struct RTCSettingsData {
 
     // Samples buffer and index for it
 	uint8_t index;
-	int16_t temp[60];
-	int16_t humidity[60];
-    int16_t voltage[60];
+	int16_t temp[90];
+	int16_t humidity[90];
 
     // Target state of the state machine
     State state;
@@ -29,6 +28,12 @@ struct RTCSettingsData {
 
     // Keep track of the last pushed temperature value
     int16_t lastPushedTemp;
+
+    int16_t pushErrors;
+    int16_t connectErrors;
+    int16_t sensorErrors;
+    int16_t padding;
+
 };
 
 class Settings: public SettingsBase<SettingsData, RTCSettingsData> {

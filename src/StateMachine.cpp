@@ -20,12 +20,16 @@ bool should_push() {
 }
 
 void read_sensor() {
-    bme280.begin();
+    bool sensorInit = bme280.begin();
     // Give some time to the sensor so it can take a reading
     delay(10);
-    bme280.measure();
+    bool sensorRead = bme280.measure();
 
     RTCSettingsData* data = settings.getRTCSettings();
+
+    if (!sensorInit || !sensorRead) {
+        data->sensorErrors++;
+    }
 
     uint8_t index = data->index;
     uint8_t maxIndex = sizeof(data->temp)/sizeof(data->temp[0]) - 1;
@@ -33,14 +37,12 @@ void read_sensor() {
         for (int i = 0; i < maxIndex; i++) {
             data->temp[i] = data->temp[i+1];
             data->humidity[i] = data->humidity[i+1];
-            data->voltage[i] = data->voltage[i+1];
         }
         index = maxIndex;
     }
 
     data->temp[index] = round(bme280.getTemperature() * 10);
     data->humidity[index] = round(bme280.getHumidity() * 10);
-    data->voltage[index] = round(436.5 * analogRead(A0) / 1023);
     data->index++;
 
     if (data->lastPushedTemp == 0) {
@@ -60,19 +62,21 @@ void push_data() {
         nowMinusSeconds = nowMinusSeconds / 1000000;
         dataSender.append("temp", data->temp[i]/10.0f, nowMinusSeconds, 1);
         dataSender.append("humidity", data->humidity[i]/10.0f, nowMinusSeconds, 1);
-        dataSender.append("bat_voltage", data->voltage[i]/100.0f, nowMinusSeconds, 2);
-        Serial.printf("now()-%d: %.1f\n", nowMinusSeconds, data->temp[i]/10.0f);
     }
 
     dataSender.append("v_bat", GET_V_BAT/100.0f, 0, 2);
-
+    dataSender.append("sensor_errors", data->sensorErrors, 0);
+    dataSender.append("connect_errors", data->connectErrors, 0);
+    dataSender.append("push_errors", data->pushErrors, 0);
+    dataSender.append("points", data->index, 0);
 
     if (dataSender.push()) {
         data->lastPushedTemp = data->temp[samples-1];
         data->index = 0;
+    } else {
+        data->pushErrors++;
     }
 }
-
 
 void collect_step() {
     read_sensor();
@@ -86,37 +90,37 @@ void collect_step() {
         ESP.deepSleep(1000, WAKE_RF_DEFAULT);
     }
 
-    // Execute again collect as next step
     settings.loop();
-    Serial.println(micros());
+ 
+    // 90ms less sleep needed based on log analysis
     ESP.deepSleep(
-        SAMPLING_INTERVAL_NS - micros(),
+        max(1000UL, SAMPLING_INTERVAL_NS - micros() - 90000),
         WAKE_RF_DISABLED);
 }
 
 void push_step() {
     wifi.begin();
     wifi.connect();
-    while (!wifi.isConnected() && !wifi.isInAPMode() && micros() < 10000) {
+    while (!wifi.isConnected() && !wifi.isInAPMode() && millis() < 10000) {
         yield();
         delay(10);
         wifi.loop();
     }
-    
+
     if (wifi.isConnected()) {
         dataSender.init();
         push_data();
+    } else {
+        settings.getRTCSettings()->connectErrors++;
+        settings.getRTCSettings()->network.wifi_channel = 0;
     }
 
     wifi.disconnect();
     settings.getRTCSettings()->state = COLLECTING;
     settings.loop();
 
-    // This may needs to be calibrated a bit. There is likely some delay before the micros start
-    // ticking. The drift over the time should be calculated and corrected either here or in the
-    // deep sleep performed by the collect function code.
-    Serial.println(micros());
+    // 390ms more sleep needed based on log analysis
     ESP.deepSleep(
-        SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation,
+        max(1000UL, SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation + 390000),
         WAKE_RF_DISABLED);
 }
