@@ -12,6 +12,7 @@ WiFiManager wifi = WiFiManager(&logger, &settings.getSettings()->network, &setti
 WebServer webServer = WebServer(&logger, &settings.getSettings()->network);
 InfluxDBSender dataSender = InfluxDBSender(&logger, &settings.getSettings()->influxDB, &settings.getSettings()->network);
 BME280 bme280 = BME280(&settings.getSettings()->bme280);
+Battery battery = Battery(&settings.getSettings()->battery);
 
 void setup() { 
 

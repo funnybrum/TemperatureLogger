@@ -64,7 +64,7 @@ void push_data() {
         dataSender.append("humidity", data->humidity[i]/10.0f, nowMinusSeconds, 1);
     }
 
-    dataSender.append("v_bat", GET_V_BAT/100.0f, 0, 2);
+    dataSender.append("v_bat", battery.getVoltage()/100.0f, 0, 2);
     dataSender.append("sensor_errors", data->sensorErrors, 0);
     dataSender.append("connect_errors", data->connectErrors, 0);
     dataSender.append("push_errors", data->pushErrors, 0);

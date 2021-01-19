@@ -23,6 +23,7 @@ void WebServer::handle_settings() {
     wifi.parse_config_params(this);
     bme280.parse_config_params(this);
     dataSender.parse_config_params(this);
+    battery.parse_config_params(this);
 
     // Generate settings page content
     char network_settings[strlen_P(NETWORK_CONFIG_PAGE) + 32];
@@ -34,13 +35,17 @@ void WebServer::handle_settings() {
     char temp_sensor_settings[strlen_P(BME280_CONFIG_PAGE) + 16];
     bme280.get_config_page(temp_sensor_settings);
 
+    char battery_settings[strlen_P(BATTERY_CONFIG_PAGE) + 16];
+    battery.get_config_page(battery_settings);
+
 
     sprintf_P(
         buffer,
         CONFIG_PAGE,
         network_settings,
         influx_db_sender_settings,
-        temp_sensor_settings);
+        temp_sensor_settings,
+        battery_settings);
     server->send(200, "text/html", buffer);
 }
 
@@ -49,7 +54,7 @@ void WebServer::handle_get() {
               GET_JSON,
               bme280.getTemperature(),
               bme280.getHumidity(),
-              GET_V_BAT/100.0f);
+              battery.getVoltage()/100.0f);
     server->send(200, "application/json", buffer);
 }
 

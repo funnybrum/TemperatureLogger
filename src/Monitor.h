@@ -20,16 +20,15 @@ extern Settings settings;
 extern WiFiManager wifi;
 extern InfluxDBSender dataSender;
 extern BME280 bme280;
+extern Battery battery;
 
 // If DEBUG is defined the serial output will provide debug messages.
 // #define DEBUG
 
 #include "StateMachine.h"
 #include "BME280.h"
-
-extern BME280 bme280;
+#include "Battery.h"
 
 #define HTTP_PORT 80
 #define HOSTNAME "temp-monitor"
 #define SAMPLING_INTERVAL_NS 30000000UL   // Interval on which to take measurments in nanoseconds
-#define GET_V_BAT round(475.0 * analogRead(A0) / 1023)

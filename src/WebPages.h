@@ -1,10 +1,11 @@
 const char CONFIG_PAGE[] PROGMEM = R"=====(
 <HTML>
  <HEAD>
-   <TITLE>Humid Matic v2</TITLE>
+   <TITLE>Temperature Monitor</TITLE>
  </HEAD>
  <BODY>
   <form action="/settings" method="get">
+   %s<br><br>
    %s<br><br>
    %s<br><br>
    %s<br><br>

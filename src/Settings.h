@@ -4,12 +4,14 @@
 #include "WiFi.h"
 #include "InfluxDBSender.h"
 #include "BME280.h"
+#include "Battery.h"
 #include "StateMachine.h"
 
 struct SettingsData {
     NetworkSettings network;
     InfluxDBSenderSettings influxDB;
     BME280Settings bme280;
+    BatterySettings battery;
 };
 
 struct RTCSettingsData {
