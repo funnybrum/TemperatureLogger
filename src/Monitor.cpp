@@ -70,12 +70,19 @@ void loop() {
     if (lastSensorReading == 0 || millis() - lastSensorReading > SAMPLING_INTERVAL_NS / 1000) {
         lastSensorReading = millis();
         read_sensor();
-        if (should_push()) {
+        if (should_push() || millis() > MAX_FRESH_BOOT_STATE_DURATION_S * 1000) {
             dataSender.init();
             push_data();
+            if (millis() > MAX_FRESH_BOOT_STATE_DURATION_S * 1000) {
+                settings.loop();
+                ESP.deepSleep(SAMPLING_INTERVAL_NS, WAKE_RF_DISABLED);
+            }
         }        
     }
 
+#ifdef DEBUG
     Serial.print(".");
+#endif
+
     delay(1000);
 }

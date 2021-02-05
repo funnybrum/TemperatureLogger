@@ -31,23 +31,23 @@ void read_sensor() {
         data->sensorErrors++;
     }
 
-    uint8_t index = data->index;
     uint8_t maxIndex = sizeof(data->temp)/sizeof(data->temp[0]) - 1;
-    if (index > maxIndex) {
+    if (data->index > maxIndex) {
         for (int i = 0; i < maxIndex; i++) {
             data->temp[i] = data->temp[i+1];
             data->humidity[i] = data->humidity[i+1];
         }
-        index = maxIndex;
+        data->index = maxIndex;
     }
 
-    data->temp[index] = round(bme280.getTemperature() * 10);
-    data->humidity[index] = round(bme280.getHumidity() * 10);
-    data->index++;
+    data->temp[data->index] = round(bme280.getTemperature() * 10);
+    data->humidity[data->index] = round(bme280.getHumidity() * 10);
 
     if (data->lastPushedTemp == 0) {
-        data->lastPushedTemp = data->temp[index];
+        data->lastPushedTemp = data->temp[data->index];
     }
+
+    data->index++;
 }
 
 void push_data() {
@@ -91,10 +91,12 @@ void collect_step() {
     }
 
     settings.loop();
- 
+
     // 90ms less sleep needed based on log analysis
+    // The min(max(...)) thing is to avoid unexpected case where the awake interval was longer than
+    // sampling interval and this would result in a sleep of ~70 minutes.
     ESP.deepSleep(
-        max(1000UL, SAMPLING_INTERVAL_NS - micros() - 90000),
+        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - 90000), SAMPLING_INTERVAL_NS),
         WAKE_RF_DISABLED);
 }
 
@@ -120,7 +122,9 @@ void push_step() {
     settings.loop();
 
     // 390ms more sleep needed based on log analysis
+    // The min(max(...)) thing is to avoid unexpected case where the awake interval was longer than
+    // sampling interval and this would result in a sleep of ~70 minutes.
     ESP.deepSleep(
-        max(1000UL, SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation + 390000),
+        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation + 390000), SAMPLING_INTERVAL_NS),
         WAKE_RF_DISABLED);
 }
