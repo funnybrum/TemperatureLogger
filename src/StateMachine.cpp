@@ -92,11 +92,11 @@ void collect_step() {
 
     settings.loop();
 
-    // 90ms less sleep needed based on log analysis
+    // 10ms less sleep needed based on log analysis
     // The min(max(...)) thing is to avoid unexpected case where the awake interval was longer than
     // sampling interval and this would result in a sleep of ~70 minutes.
     ESP.deepSleep(
-        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - 90000), SAMPLING_INTERVAL_NS),
+        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - 10000), SAMPLING_INTERVAL_NS),
         WAKE_RF_DISABLED);
 }
 
@@ -121,10 +121,10 @@ void push_step() {
     settings.getRTCSettings()->state = COLLECTING;
     settings.loop();
 
-    // 390ms more sleep needed based on log analysis
+    // 1780ms more sleep needed based on log analysis
     // The min(max(...)) thing is to avoid unexpected case where the awake interval was longer than
     // sampling interval and this would result in a sleep of ~70 minutes.
     ESP.deepSleep(
-        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation + 390000), SAMPLING_INTERVAL_NS),
+        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation + 1780000), SAMPLING_INTERVAL_NS),
         WAKE_RF_DISABLED);
 }
