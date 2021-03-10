@@ -11,13 +11,21 @@ float Battery::getVoltage() {
     return voltage;   
 }
 
+void Battery::checkLevel() {
+    if (getVoltage() * 1000 < settings.getSettings()->battery.voltageThreshold) {
+        ESP.deepSleep(SAMPLING_INTERVAL_NS * 10, WAKE_RF_DISABLED);
+    }
+}
+
 void Battery::get_config_page(char* buffer) {
     sprintf_P(
         buffer,
         BATTERY_CONFIG_PAGE,
-        _settings->voltageFactor);
+        _settings->voltageFactor,
+        _settings->voltageThreshold);
 }
 
 void Battery::parse_config_params(WebServerBase* webServer) {
-    webServer->process_setting("voltage_offset", _settings->voltageFactor);
+    webServer->process_setting("voltage_factor", _settings->voltageFactor);
+    webServer->process_setting("voltage_threshold", _settings->voltageThreshold);
 }

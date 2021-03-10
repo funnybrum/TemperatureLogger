@@ -53,6 +53,9 @@ void read_sensor() {
 void push_data() {
     RTCSettingsData* data = settings.getRTCSettings();
     uint8_t samples = data->index;
+
+    // Note: Telemetry buffer capacity is 16kb. Estimatet values for 90 points pushed at once is ~14kb at most.
+
     for (uint8_t i = 0; i < samples; i++) {
         uint32_t nowMinusSeconds = data->cycleCompensation + (samples-i-1) * SAMPLING_INTERVAL_NS;
         if (data->state == PUSH) {
@@ -60,8 +63,12 @@ void push_data() {
             nowMinusSeconds+=micros();
         }
         nowMinusSeconds = nowMinusSeconds / 1000000;
-        dataSender.append("temp", data->temp[i]/10.0f, nowMinusSeconds, 1);
-        dataSender.append("humidity", data->humidity[i]/10.0f, nowMinusSeconds, 1);
+        float temp = data->temp[i]/10.0f;
+        float humidity =  data->humidity[i]/10.0f;
+        float abs_humidity = bme280.calculateAbsoluteHumidity(data->humidity[i]/10.0f, data->temp[i]/10.0f);
+        dataSender.append("temp", temp, nowMinusSeconds, 1);
+        dataSender.append("humidity", humidity, nowMinusSeconds, 1);
+        dataSender.append("abs_humidity", abs_humidity, nowMinusSeconds, 2);
     }
 
     dataSender.append("v_bat", battery.getVoltage()/100.0f, 0, 2);

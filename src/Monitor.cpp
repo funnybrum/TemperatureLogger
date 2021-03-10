@@ -27,7 +27,8 @@ void setup() {
 
     logger.begin();
     settings.begin();
- 
+    battery.checkLevel();
+
     // TODO check if bettery is being charged and if so - go in FRESH_BOOT state.
 
     if (strlen(settings.getSettings()->network.ssid) < 2) {
