@@ -6,6 +6,12 @@ bool should_push() {
     }
 
     RTCSettingsData* data = settings.getRTCSettings();
+
+    if (data->lastErrorIndex > 0 && data->index - data->lastErrorIndex < 5) {
+        // There was an error less than 5 samples ago. Do not try to push the data.
+        return false;
+    }
+
     if (data->index >= 10) {
         // There are 10 or more samples
         return true;
@@ -80,8 +86,10 @@ void push_data() {
     if (dataSender.push()) {
         data->lastPushedTemp = data->temp[samples-1];
         data->index = 0;
+        data->lastErrorIndex = 0
     } else {
         data->pushErrors++;
+        data->lastErrorIndex = data->index;
     }
 }
 

@@ -23,7 +23,7 @@ extern BME280 bme280;
 extern Battery battery;
 
 // If DEBUG is defined the serial output will provide debug messages.
-#define DEBUG
+// #define DEBUG
 
 #include "StateMachine.h"
 #include "BME280.h"

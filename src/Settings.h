@@ -34,7 +34,7 @@ struct RTCSettingsData {
     int16_t pushErrors;
     int16_t connectErrors;
     int16_t sensorErrors;
-    int16_t padding;
+    int16_t lastErrorIndex;
 
 };
 
