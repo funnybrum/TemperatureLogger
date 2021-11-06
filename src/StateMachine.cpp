@@ -7,8 +7,15 @@ bool should_push() {
 
     RTCSettingsData* data = settings.getRTCSettings();
 
-    if (data->lastErrorIndex > 0 && data->index - data->lastErrorIndex < 5) {
-        // There was an error less than 5 samples ago. Do not try to push the data.
+    uint32_t random = 0;
+    uint8_t *randomSeed = (uint8_t*) data;
+    for (uint16_t i = 0; i < sizeof(RTCSettingsData); i++) {
+        random += *(((uint8_t*)data) + i);
+    }
+    random %= 5;
+
+    if (data->lastErrorIndex > 0 && data->index - data->lastErrorIndex < 3 + random) {
+        // There was an error less than 3 to 8 samples ago. Do not try to push the data.
         return false;
     }
 
@@ -86,7 +93,7 @@ void push_data() {
     if (dataSender.push()) {
         data->lastPushedTemp = data->temp[samples-1];
         data->index = 0;
-        data->lastErrorIndex = 0
+        data->lastErrorIndex = 0;
     } else {
         data->pushErrors++;
         data->lastErrorIndex = data->index;
@@ -118,7 +125,7 @@ void collect_step() {
 void push_step() {
     wifi.begin();
     wifi.connect();
-    while (!wifi.isConnected() && !wifi.isInAPMode() && millis() < 10000) {
+    while (!wifi.isConnected() && !wifi.isInAPMode() && millis() < 20000) {
         yield();
         delay(10);
         wifi.loop();
@@ -129,6 +136,7 @@ void push_step() {
         push_data();
     } else {
         settings.getRTCSettings()->connectErrors++;
+        settings.getRTCSettings()->lastErrorIndex = settings.getRTCSettings()->index;
         settings.getRTCSettings()->network.wifi_channel = 0;
     }
 
