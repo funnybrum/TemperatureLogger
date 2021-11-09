@@ -1,5 +1,17 @@
 #include "Monitor.h"
 
+// void dump_data(const char* step) {
+//     Serial.printf("========= dump start (%s) ==============\n", step);
+//     RTCSettingsData* data = settings.getRTCSettings();
+//     Serial.printf("sample count: %d\n", data->index);
+//     Serial.printf("error count: %d cr, %d pe, %d se\n", data->connectErrors, data->pushErrors, data->sensorErrors);
+//     Serial.println("samples:");
+//     for (int i = 0; i < data->index; i++) {
+//         Serial.printf("  * t: %d    h: %d\n", data->temp[i], data->humidity[i]);
+//     }
+//     Serial.printf("========= dump end (%s) ==============\n", step);
+// }
+
 bool should_push() {
     if (strlen(settings.getSettings()->influxDB.address)<2) {
         return false;
@@ -7,15 +19,12 @@ bool should_push() {
 
     RTCSettingsData* data = settings.getRTCSettings();
 
-    uint32_t random = 0;
-    uint8_t *randomSeed = (uint8_t*) data;
-    for (uint16_t i = 0; i < sizeof(RTCSettingsData); i++) {
-        random += *(((uint8_t*)data) + i);
-    }
-    random %= 5;
+    int8_t random = settings.getRTCCheckSum() % 5;
 
     if (data->lastErrorIndex > 0 && data->index - data->lastErrorIndex < 3 + random) {
         // There was an error less than 3 to 8 samples ago. Do not try to push the data.
+        // The 3 to 8 samples represent a kind of jitter. Multiple temperature logger connecting
+        // at the same time are an issue and jitter is needed to avoid that.
         return false;
     }
 
@@ -72,7 +81,7 @@ void push_data() {
     for (uint8_t i = 0; i < samples; i++) {
         uint32_t nowMinusSeconds = data->cycleCompensation + (samples-i-1) * SAMPLING_INTERVAL_NS;
         if (data->state == PUSH) {
-            // In deep sleep cycle state, compoensate the micros.
+            // In deep sleep cycle state, compensate the micros.
             nowMinusSeconds+=micros();
         }
         nowMinusSeconds = nowMinusSeconds / 1000000;
