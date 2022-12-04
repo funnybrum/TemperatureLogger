@@ -60,6 +60,7 @@ void read_sensor() {
             data->humidity[i] = data->humidity[i+1];
         }
         data->index = maxIndex;
+        data->lastErrorIndex--;
     }
 
     data->temp[data->index] = round(bme280.getTemperature() * 10);
