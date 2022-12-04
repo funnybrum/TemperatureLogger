@@ -18,9 +18,9 @@ struct RTCSettingsData {
     RTCNetworkSettings network;
 
     // Samples buffer and index for it
-	uint8_t index;
-	int16_t temp[90];
-	int16_t humidity[90];
+	uint8_t index;          // Index of the first unused sample in the buffer.
+	int16_t temp[120];       // Temperature buffer. In 0.1C, or 230 = 23C.
+	int8_t humidity[120];   // Humidity buffer.
 
     // Target state of the state machine
     State state;

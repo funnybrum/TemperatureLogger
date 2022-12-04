@@ -33,8 +33,8 @@ bool should_push() {
         return true;
     }
 
-    if (abs(data->lastPushedTemp - data->temp[data->index-1]) > 10) {
-        // There is >= 1 degree difference from the last pushed temperature
+    if (abs(data->lastPushedTemp - data->temp[data->index-1]) > 5) {
+        // There is >= 0.5 degree difference from the last pushed temperature
         return true;
     }
 
@@ -63,7 +63,7 @@ void read_sensor() {
     }
 
     data->temp[data->index] = round(bme280.getTemperature() * 10);
-    data->humidity[data->index] = round(bme280.getHumidity() * 10);
+    data->humidity[data->index] = round(bme280.getHumidity());
 
     if (data->lastPushedTemp == 0) {
         data->lastPushedTemp = data->temp[data->index];
@@ -86,8 +86,8 @@ void push_data() {
         }
         nowMinusSeconds = nowMinusSeconds / 1000000;
         float temp = data->temp[i]/10.0f;
-        float humidity =  data->humidity[i]/10.0f;
-        float abs_humidity = bme280.calculateAbsoluteHumidity(data->humidity[i]/10.0f, data->temp[i]/10.0f);
+        float humidity =  data->humidity[i];
+        float abs_humidity = bme280.calculateAbsoluteHumidity(humidity, temp);
         dataSender.append("temp", temp, nowMinusSeconds, 1);
         dataSender.append("humidity", humidity, nowMinusSeconds, 1);
         dataSender.append("abs_humidity", abs_humidity, nowMinusSeconds, 2);
@@ -98,6 +98,7 @@ void push_data() {
     dataSender.append("connect_errors", data->connectErrors, 0);
     dataSender.append("push_errors", data->pushErrors, 0);
     dataSender.append("points", data->index, 0);
+    dataSender.append("rssi", WiFi.RSSI(), 0);
 
     if (dataSender.push()) {
         data->lastPushedTemp = data->temp[samples-1];
@@ -146,6 +147,7 @@ void push_step() {
     } else {
         settings.getRTCSettings()->connectErrors++;
         settings.getRTCSettings()->lastErrorIndex = settings.getRTCSettings()->index;
+        // Reset the WiFi quick connect settings.
         settings.getRTCSettings()->network.wifi_channel = 0;
     }
 
