@@ -77,21 +77,31 @@ void push_data() {
     RTCSettingsData* data = settings.getRTCSettings();
     uint8_t samples = data->index;
 
-    // Note: Telemetry buffer capacity is 16kb. Estimatet values for 90 points pushed at once is ~14kb at most.
+    // Note: Telemetry buffer capacity is 16kb. This can collect ~90 points.
 
     for (uint8_t i = 0; i < samples; i++) {
-        uint32_t nowMinusSeconds = data->cycleCompensation + (samples-i-1) * SAMPLING_INTERVAL_NS;
+        // Do the math in millis. In nanoseconds the uint32_t will overflow if data is for more than 72 minutes.
+        uint32_t nowMinusSeconds = (data->cycleCompensation/1000) + (samples-i-1) * SAMPLING_INTERVAL_MS;
         if (data->state == PUSH) {
             // In deep sleep cycle state, compensate the micros.
-            nowMinusSeconds+=micros();
+            nowMinusSeconds+=(micros()/1000);
         }
-        nowMinusSeconds = nowMinusSeconds / 1000000;
+        nowMinusSeconds = nowMinusSeconds / 1000;
         float temp = data->temp[i]/10.0f;
         float humidity =  data->humidity[i];
         float abs_humidity = bme280.calculateAbsoluteHumidity(humidity, temp);
         dataSender.append("temp", temp, nowMinusSeconds, 1);
         dataSender.append("humidity", humidity, nowMinusSeconds, 1);
         dataSender.append("abs_humidity", abs_humidity, nowMinusSeconds, 2);
+
+        // If the buffer has more than 60 points - push
+        if (i > 0 && i % 60 == 0) {
+            if (!dataSender.push()) {
+                data->pushErrors++;
+                data->lastErrorIndex = data->index;
+                return;
+            }
+        }
     }
 
     dataSender.append("v_bat", battery.getVoltage()/100.0f, 0, 2);
@@ -129,7 +139,7 @@ void collect_step() {
     // The min(max(...)) thing is to avoid unexpected case where the awake interval was longer than
     // sampling interval and this would result in a sleep of ~70 minutes.
     ESP.deepSleep(
-        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - 10000), SAMPLING_INTERVAL_NS),
+        min(max(1000UL, (SAMPLING_INTERVAL_MS*1000) - micros() - 10000), SAMPLING_INTERVAL_MS*1000),
         WAKE_RF_DISABLED);
 }
 
@@ -160,6 +170,6 @@ void push_step() {
     // The min(max(...)) thing is to avoid unexpected case where the awake interval was longer than
     // sampling interval and this would result in a sleep of ~70 minutes.
     ESP.deepSleep(
-        min(max(1000UL, SAMPLING_INTERVAL_NS - micros() - settings.getRTCSettings()->cycleCompensation + 1780000), SAMPLING_INTERVAL_NS),
+        min(max(1000UL, SAMPLING_INTERVAL_MS*1000 - micros() - settings.getRTCSettings()->cycleCompensation + 1780000), SAMPLING_INTERVAL_MS*1000),
         WAKE_RF_DISABLED);
 }

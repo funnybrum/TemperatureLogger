@@ -68,7 +68,7 @@ void loop() {
     wifi.loop();
     webServer.loop();
 
-    if (lastSensorReading == 0 || millis() - lastSensorReading > SAMPLING_INTERVAL_NS / 1000) {
+    if (lastSensorReading == 0 || millis() - lastSensorReading > SAMPLING_INTERVAL_MS) {
         lastSensorReading = millis();
         read_sensor();
         if (should_push() || millis() > MAX_FRESH_BOOT_STATE_DURATION_S * 1000) {
@@ -76,7 +76,7 @@ void loop() {
             push_data();
             if (millis() > MAX_FRESH_BOOT_STATE_DURATION_S * 1000) {
                 settings.loop();
-                ESP.deepSleep(SAMPLING_INTERVAL_NS, WAKE_RF_DISABLED);
+                ESP.deepSleep(SAMPLING_INTERVAL_MS * 1000, WAKE_RF_DISABLED);
             }
         }        
     }

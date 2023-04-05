@@ -13,7 +13,7 @@ float Battery::getVoltage() {
 
 void Battery::checkLevel() {
     if (getVoltage() * 1000 < settings.getSettings()->battery.voltageThreshold) {
-        ESP.deepSleep(SAMPLING_INTERVAL_NS * 10, WAKE_RF_DISABLED);
+        ESP.deepSleep(SAMPLING_INTERVAL_MS * 10000, WAKE_RF_DISABLED);
     }
 }
 

@@ -31,5 +31,5 @@ extern Battery battery;
 
 #define HTTP_PORT 80
 #define HOSTNAME "temp-monitor"
-#define SAMPLING_INTERVAL_NS 180 * 1000000UL     // Interval on which to take measurments in nanoseconds
+#define SAMPLING_INTERVAL_MS 60 * 1000UL     // Interval on which to take measurments in milliseconds
 #define MAX_FRESH_BOOT_STATE_DURATION_S 600 // Max time to stay in fresh boot (WiFi on) state
