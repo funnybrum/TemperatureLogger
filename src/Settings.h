@@ -30,6 +30,7 @@ struct RTCSettingsData {
 
     // Keep track of the last pushed temperature value
     int16_t lastPushedTemp;
+    int16_t lastPushedHumidity;
 
     int16_t pushErrors;
     int16_t connectErrors;

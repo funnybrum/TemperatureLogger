@@ -34,7 +34,12 @@ bool should_push() {
     }
 
     if (abs(data->lastPushedTemp - data->temp[data->index-1]) > 5) {
-        // There is >= 0.5 degree difference from the last pushed temperature
+        // There is >= 0.5C difference from the last pushed temperature
+        return true;
+    }
+
+    if (abs(data->lastPushedHumidity - data->humidity[data->index-1]) > 10) {
+        // There is >= 10% RH difference from the last pushed RH
         return true;
     }
 
@@ -68,6 +73,7 @@ void read_sensor() {
 
     if (data->lastPushedTemp == 0) {
         data->lastPushedTemp = data->temp[data->index];
+        data->lastPushedHumidity = data->humidity[data->index];
     }
 
     data->index++;
@@ -113,6 +119,7 @@ void push_data() {
 
     if (dataSender.push()) {
         data->lastPushedTemp = data->temp[samples-1];
+        data->lastPushedHumidity = data->humidity[samples-1];
         data->index = 0;
         data->lastErrorIndex = 0;
     } else {

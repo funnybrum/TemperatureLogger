@@ -22,7 +22,7 @@ extern InfluxDBSender dataSender;
 extern BME280 bme280;
 extern Battery battery;
 
-// If DEBUG is defined the serial output will provide debug messages.
+// If DEBUG is defined, the serial output will output the log messages.
 // #define DEBUG
 
 #include "StateMachine.h"
@@ -31,5 +31,5 @@ extern Battery battery;
 
 #define HTTP_PORT 80
 #define HOSTNAME "temp-monitor"
-#define SAMPLING_INTERVAL_MS 60 * 1000UL     // Interval on which to take measurments in milliseconds
+#define SAMPLING_INTERVAL_MS 120 * 1000UL   // Interval on which to take measurments in milliseconds
 #define MAX_FRESH_BOOT_STATE_DURATION_S 600 // Max time to stay in fresh boot (WiFi on) state
