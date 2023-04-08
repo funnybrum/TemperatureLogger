@@ -25,7 +25,6 @@ void setup() {
  
     logger.begin();
     settings.begin();
-    battery.checkLevel();
 
     pinMode(16, WAKEUP_PULLUP);
 

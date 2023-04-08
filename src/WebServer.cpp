@@ -54,7 +54,7 @@ void WebServer::handle_get() {
               GET_JSON,
               bme280.getTemperature(),
               bme280.getHumidity(),
-              battery.getVoltage()/100.0f,
+              battery.getVoltage()/1000.0f,
               WiFi.RSSI());
     server->send(200, "application/json", buffer);
 }

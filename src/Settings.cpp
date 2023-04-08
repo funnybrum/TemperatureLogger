@@ -12,7 +12,7 @@ void Settings::initializeSettings() {
     settingsData.bme280.humidityFactor = 1000;
     settingsData.bme280.humidityOffset = 0;
     settingsData.battery.voltageFactor = 1000;
-    settingsData.battery.voltageThreshold = 3500;
+    settingsData.battery.voltageThreshold = 3000;
 }
 
 SettingsData* Settings::getSettings() {

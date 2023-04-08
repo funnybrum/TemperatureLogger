@@ -110,7 +110,7 @@ void push_data() {
         }
     }
 
-    dataSender.append("v_bat", battery.getVoltage()/100.0f, 0, 2);
+    dataSender.append("v_bat", battery.getVoltage()/1000.0f, 0, 2);
     dataSender.append("sensor_errors", data->sensorErrors, 0);
     dataSender.append("connect_errors", data->connectErrors, 0);
     dataSender.append("push_errors", data->pushErrors, 0);
@@ -163,11 +163,16 @@ void push_step() {
         dataSender.init();
         push_data();
     } else {
+        // Handle connection errors.
         settings.getRTCSettings()->connectErrors++;
         settings.getRTCSettings()->lastErrorIndex = settings.getRTCSettings()->index;
         // Reset the WiFi quick connect settings.
         settings.getRTCSettings()->network.wifi_channel = 0;
     }
+
+    // After each push check the voltage level. If battery is to low - sleep forever to
+    // protect it from overdischarge.
+    battery.checkLevel();
 
     wifi.disconnect();
     settings.getRTCSettings()->state = COLLECTING;

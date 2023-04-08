@@ -6,13 +6,13 @@ Battery::Battery(BatterySettings* settings) {
 }
 
 float Battery::getVoltage() {
-    float voltage = round(475.0 * analogRead(A0) / 1023);
+    float voltage = round(4750.0 * analogRead(A0) / 1023);
     voltage = voltage * settings.getSettings()->battery.voltageFactor / 1000.0;
     return voltage;   
 }
 
 void Battery::checkLevel() {
-    if (getVoltage() * 1000 < settings.getSettings()->battery.voltageThreshold) {
+    if (getVoltage() < settings.getSettings()->battery.voltageThreshold) {
         ESP.deepSleepInstant(0, WAKE_RF_DISABLED);
     }
 }
