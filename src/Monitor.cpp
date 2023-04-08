@@ -23,13 +23,11 @@ void setup() {
     }
 #endif
  
-    pinMode(16, WAKEUP_PULLUP);
-
     logger.begin();
     settings.begin();
     battery.checkLevel();
 
-    // TODO check if bettery is being charged and if so - go in FRESH_BOOT state.
+    pinMode(16, WAKEUP_PULLUP);
 
     if (strlen(settings.getSettings()->network.ssid) < 2) {
         // No configuration. In such case stay in FRESH_BOOT mode.
@@ -76,7 +74,7 @@ void loop() {
             push_data();
             if (millis() > MAX_FRESH_BOOT_STATE_DURATION_S * 1000) {
                 settings.loop();
-                ESP.deepSleep(SAMPLING_INTERVAL_MS * 1000, WAKE_RF_DISABLED);
+                ESP.deepSleepInstant(SAMPLING_INTERVAL_MS * 1000, WAKE_RF_DISABLED);
             }
         }        
     }
