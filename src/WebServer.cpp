@@ -21,7 +21,7 @@ void WebServer::handle_root() {
 void WebServer::handle_settings() {
     // Parse passed parameters
     wifi.parse_config_params(this);
-    bme280.parse_config_params(this);
+    tempSensor.parse_config_params(this);
     dataSender.parse_config_params(this);
     battery.parse_config_params(this);
 
@@ -32,8 +32,8 @@ void WebServer::handle_settings() {
     char influx_db_sender_settings[strlen_P(INFLUXDB_SENDER_CONFIG_PAGE) + 64];
     dataSender.get_config_page(influx_db_sender_settings);
 
-    char temp_sensor_settings[strlen_P(BME280_CONFIG_PAGE) + 16];
-    bme280.get_config_page(temp_sensor_settings);
+    char temp_sensor_settings[strlen_P(TEMP_SENSOR_CONFIG_PAGE) + 16];
+    tempSensor.get_config_page(temp_sensor_settings);
 
     char battery_settings[strlen_P(BATTERY_CONFIG_PAGE) + 16];
     battery.get_config_page(battery_settings);
@@ -52,8 +52,8 @@ void WebServer::handle_settings() {
 void WebServer::handle_get() {
     sprintf_P(buffer,
               GET_JSON,
-              bme280.getTemperature(),
-              bme280.getHumidity(),
+              tempSensor.getTemperature(),
+              tempSensor.getHumidity(),
               battery.getVoltage()/1000.0f,
               WiFi.RSSI());
     server->send(200, "application/json", buffer);

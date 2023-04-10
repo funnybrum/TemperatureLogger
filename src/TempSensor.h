@@ -2,18 +2,16 @@
 
 #include "BoschBME280.h"
 
-#define BME280_READ_INTERVAL 1000
-
-struct BME280Settings {
+struct TempSensorSettings {
     int16_t temperatureFactor; // In 0.001 units, i.e. 1000 here sets the factor to 1
     int16_t temperatureOffset;  // In 0.01C, i.e. 100 here is 1 degree offset
     int16_t humidityFactor;    // In 0.001 units, i.e. 1000 here sets the factor to 1
     int16_t humidityOffset;     // In 0.01C, i.e. 100 here is 1% RH offset
 };
 
-const char BME280_CONFIG_PAGE[] PROGMEM = R"=====(
+const char TEMP_SENSOR_CONFIG_PAGE[] PROGMEM = R"=====(
 <fieldset style='display: inline-block; width: 300px'>
-<legend>BME280 settings</legend>
+<legend>Temp sensor settings</legend>
 <small>Used for precise sensor calibration<br>corrected = 0.001*factor*raw + 0.01*offset</small><br>
 Temperature correction:<br>
 Temperature factor:<br>
@@ -29,9 +27,9 @@ Humidity offset:<br>
 </fieldset>
 )=====";
 
-class BME280 {
+class TempSensor {
     public:
-        BME280(BME280Settings* settings);
+        TempSensor(TempSensorSettings* settings);
         bool begin();
         bool measure();
 
@@ -49,5 +47,5 @@ class BME280 {
         bool _sensorFound;
         bool _initialized = false;
         BoschBME280 _bme280 = BoschBME280();
-        BME280Settings* _settings;
+        TempSensorSettings* _settings;
 };

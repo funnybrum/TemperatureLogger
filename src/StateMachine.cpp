@@ -47,10 +47,10 @@ bool should_push() {
 }
 
 void read_sensor() {
-    bool sensorInit = bme280.begin();
+    bool sensorInit = tempSensor.begin();
     // Give some time to the sensor so it can take a reading
     delay(10);
-    bool sensorRead = bme280.measure();
+    bool sensorRead = tempSensor.measure();
 
     RTCSettingsData* data = settings.getRTCSettings();
 
@@ -68,8 +68,8 @@ void read_sensor() {
         data->lastErrorIndex--;
     }
 
-    data->temp[data->index] = round(bme280.getTemperature() * 10);
-    data->humidity[data->index] = round(bme280.getHumidity());
+    data->temp[data->index] = round(tempSensor.getTemperature() * 10);
+    data->humidity[data->index] = round(tempSensor.getHumidity());
 
     if (data->lastPushedTemp == 0) {
         data->lastPushedTemp = data->temp[data->index];
@@ -95,7 +95,7 @@ void push_data() {
         nowMinusSeconds = nowMinusSeconds / 1000;
         float temp = data->temp[i]/10.0f;
         float humidity =  data->humidity[i];
-        float abs_humidity = bme280.calculateAbsoluteHumidity(humidity, temp);
+        float abs_humidity = tempSensor.calculateAbsoluteHumidity(humidity, temp);
         dataSender.append("temp", temp, nowMinusSeconds, 1);
         dataSender.append("humidity", humidity, nowMinusSeconds, 1);
         dataSender.append("abs_humidity", abs_humidity, nowMinusSeconds, 2);

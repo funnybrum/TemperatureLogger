@@ -18,7 +18,7 @@ void push_step();
 // Check if the collected data should be pushed
 bool should_push();
 
-// Read the BME280 sensor and store its data in the RTC memory structure
+// Read the temp sensor and store its data in the RTC memory structure
 void read_sensor();
 
 // Push the collected data in the RTC memory structure to the InfluxDB  

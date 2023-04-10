@@ -1,11 +1,11 @@
 #include "Monitor.h"
-#include "BME280.h"
+#include "TempSensor.h"
 
-BME280::BME280(BME280Settings* settings) {
+TempSensor::TempSensor(TempSensorSettings* settings) {
     _settings = settings;
 }
 
-bool BME280::begin() {
+bool TempSensor::begin() {
     if (!_initialized) {
         _sensorFound = _bme280.begin(0x77);
         if (!_sensorFound) {
@@ -24,7 +24,7 @@ bool BME280::begin() {
     return _sensorFound;
 }
 
-bool BME280::measure() {
+bool TempSensor::measure() {
     if (!_sensorFound) {
         return false;
     }
@@ -54,36 +54,36 @@ bool BME280::measure() {
     }
 }
 
-float BME280::getTemperature() {
+float TempSensor::getTemperature() {
     return _temp;
 }
 
-float BME280::getHumidity() {
+float TempSensor::getHumidity() {
     return _humidity;
 }
 
-float BME280::getAbsoluteHimidity() {
+float TempSensor::getAbsoluteHimidity() {
     return calculateAbsoluteHumidity(_humidity, _temp);
 }
 
-void BME280::get_config_page(char* buffer) {
+void TempSensor::get_config_page(char* buffer) {
     sprintf_P(
         buffer,
-        BME280_CONFIG_PAGE,
+        TEMP_SENSOR_CONFIG_PAGE,
         _settings->temperatureFactor,
         _settings->temperatureOffset,
         _settings->humidityFactor,
         _settings->humidityOffset);
 }
 
-void BME280::parse_config_params(WebServerBase* webServer) {
+void TempSensor::parse_config_params(WebServerBase* webServer) {
     webServer->process_setting("temp_factor", _settings->temperatureFactor);
     webServer->process_setting("temp_offset", _settings->temperatureOffset);
     webServer->process_setting("humidity_factor", _settings->humidityFactor);
     webServer->process_setting("humidity_offset", _settings->humidityOffset);
 }
 
-float BME280::calculateAbsoluteHumidity(float rh, float temp) {
+float TempSensor::calculateAbsoluteHumidity(float rh, float temp) {
     // https://carnotcycle.wordpress.com/2012/08/04/how-to-convert-relative-humidity-to-absolute-humidity/
     double p_sat = 6.112 * pow(EULER, (17.67 * temp) / (temp + 243.5));
     return (p_sat * rh * 2.167428434) / (273.15 + temp);

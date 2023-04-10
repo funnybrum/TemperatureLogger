@@ -11,7 +11,7 @@ Settings settings = Settings();
 WiFiManager wifi = WiFiManager(&logger, &settings.getSettings()->network, &settings.getRTCSettings()->network);
 WebServer webServer = WebServer(&logger, &settings.getSettings()->network);
 InfluxDBSender dataSender = InfluxDBSender(&logger, &settings.getSettings()->influxDB, &settings.getSettings()->network);
-BME280 bme280 = BME280(&settings.getSettings()->bme280);
+TempSensor tempSensor = TempSensor(&settings.getSettings()->tempSensorSettings);
 Battery battery = Battery(&settings.getSettings()->battery);
 
 void setup() { 
@@ -38,7 +38,7 @@ void setup() {
         case FRESH_BOOT:
             wifi.begin();
             webServer.begin();
-            bme280.begin();
+            tempSensor.begin();
             wifi.connect();
             while (!wifi.isConnected() && !wifi.isInAPMode()) {
                 yield();
@@ -61,7 +61,7 @@ uint32_t lastSensorReading = 0;
 void loop() {
     settings.loop();
     logger.loop();
-    bme280.measure();
+    tempSensor.measure();
     wifi.loop();
     webServer.loop();
 

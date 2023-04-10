@@ -3,14 +3,14 @@
 #include "SettingsBase.h"
 #include "WiFi.h"
 #include "InfluxDBSender.h"
-#include "BME280.h"
+#include "TempSensor.h"
 #include "Battery.h"
 #include "StateMachine.h"
 
 struct SettingsData {
     NetworkSettings network;
     InfluxDBSenderSettings influxDB;
-    BME280Settings bme280;
+    TempSensorSettings tempSensorSettings;
     BatterySettings battery;
 };
 

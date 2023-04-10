@@ -19,14 +19,14 @@ extern Logger logger;
 extern Settings settings;
 extern WiFiManager wifi;
 extern InfluxDBSender dataSender;
-extern BME280 bme280;
+extern TempSensor tempSensor;
 extern Battery battery;
 
 // If DEBUG is defined, the serial output will output the log messages.
 // #define DEBUG
 
 #include "StateMachine.h"
-#include "BME280.h"
+#include "TempSensor.h"
 #include "Battery.h"
 
 #define HTTP_PORT 80
